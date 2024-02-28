@@ -1,6 +1,12 @@
 import { prismaClient } from "../application/db";
-import { CreateUserRequest, UserResponse, toUserResponse } from "../models/user-model";
 import { ClientError } from "../lib/exceptions";
+import { generateToken } from "../lib/jwt";
+import {
+  CreateUserRequest,
+  LoginUserRequest,
+  UserResponse,
+  toUserResponse,
+} from "../models/user-model";
 import { UserValidation } from "../validations/user-validation";
 import { Validation } from "../validations/validation";
 import bcrypt from "bcrypt";
@@ -26,5 +32,41 @@ export class UserService {
     });
 
     return toUserResponse(user);
+  }
+
+  static async login(request: LoginUserRequest): Promise<UserResponse> {
+    const loginRequest = Validation.validate(UserValidation.LOGIN, request);
+
+    let user = await prismaClient.user.findUnique({
+      where: {
+        username: loginRequest.username,
+      },
+    });
+
+    if (!user) {
+      throw new ClientError("Username/Password is incorrect", 400);
+    }
+
+    const isPasswordValid = await bcrypt.compare(loginRequest.password, user.password);
+
+    if (!isPasswordValid) {
+      throw new ClientError("Username/Password is incorrect", 400);
+    }
+
+    const token = generateToken(user.username);
+
+    user = await prismaClient.user.update({
+      where: {
+        username: loginRequest.username,
+      },
+      data: {
+        token,
+      },
+    });
+
+    const response = toUserResponse(user);
+    response.token = user.token!;
+
+    return response;
   }
 }
