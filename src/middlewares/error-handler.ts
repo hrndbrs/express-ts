@@ -1,5 +1,5 @@
 import { Response, Request, NextFunction } from "express";
-import { ClientError } from "../exceptions";
+import { ClientError } from "../lib/exceptions";
 import { ZodError } from "zod";
 
 export const errorHandler = async (

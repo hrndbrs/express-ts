@@ -1,6 +1,6 @@
 import { prismaClient } from "../application/db";
-import { ClientError } from "../exceptions";
 import { CreateUserRequest, UserResponse, toUserResponse } from "../models/user-model";
+import { ClientError } from "../lib/exceptions";
 import { UserValidation } from "../validations/user-validation";
 import { Validation } from "../validations/validation";
 import bcrypt from "bcrypt";
