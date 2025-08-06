@@ -32,6 +32,12 @@ Response Body (400):
     "errors": string[]
 }
 ```
+or
+```json
+{
+    "error": string
+}
+```
 ## Login User
 
 Endpoint : POST /api/users/login
