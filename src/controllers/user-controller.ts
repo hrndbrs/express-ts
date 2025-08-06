@@ -1,29 +1,55 @@
-import { Request, Response, NextFunction } from "express";
-import { CreateUserRequest, LoginUserRequest } from "../models/user-model";
-import { UserService } from "../services/user-service";
+import { AppController, type HandlerFunction } from "../lib/types/app-type";
+import { HttpStatusCode } from "../lib/types/http-type";
+import type { UserService } from "../services";
+import type { AuthValidator } from "../validators";
 
-export class UserController {
-  static async register(req: Request, res: Response, next: NextFunction) {
+type Services = {
+  user: UserService;
+};
+
+type Validators = {
+  auth: AuthValidator;
+};
+
+type Config = {
+  services: Services;
+  validators: Validators;
+};
+
+export default class UserController extends AppController {
+  declare protected _services: Services;
+  private _validators: Validators;
+
+  constructor({ services, validators }: Config) {
+    super();
+    this._services = services;
+    this._validators = validators;
+  }
+
+  register: HandlerFunction = async (req, res, next) => {
     try {
-      const request: CreateUserRequest = req.body as CreateUserRequest;
-      const response = await UserService.register(request);
-      res.status(201).json({
+      const payload = this._validators.auth.validate(req.body, "register");
+
+      const response = await this._services.user.register(payload);
+
+      res.status(HttpStatusCode.Created).json({
         data: response,
       });
     } catch (e) {
       next(e);
     }
-  }
+  };
 
-  static async login(req: Request, res: Response, next: NextFunction) {
+  login: HandlerFunction = async (req, res, next) => {
     try {
-      const request: LoginUserRequest = req.body as LoginUserRequest;
-      const response = await UserService.login(request);
-      res.status(200).json({
+      const payload = this._validators.auth.validate(req.body, "login");
+      const response = await this._services.user.login(payload);
+
+      res.status(HttpStatusCode.OK).json({
         data: response,
       });
     } catch (e) {
       next(e);
     }
-  }
+  };
 }

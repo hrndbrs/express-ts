@@ -1,15 +1,23 @@
 import supertest from "supertest";
-import { web } from "../src/application/web";
-import { logger } from "../src/application/logging";
 import { UserTest } from "./test-util";
+
+import createServer from "../src/main";
+import createLogger from "../src/config/logging";
+import getDB from "../src/config/db";
+
+const server = createServer().app;
+const logger = createLogger();
+const db = getDB(logger);
+
+const userTest = new UserTest(db);
 
 describe("POST /api/users", () => {
   afterEach(async () => {
-    await UserTest.delete();
+    await userTest.delete();
   });
 
   it("should reject request with invalid request body", async () => {
-    const response = await supertest(web).post("/api/users").send({
+    const response = await supertest(server).post("/api/users").send({
       username: "",
       password: "",
       name: "",
@@ -22,7 +30,7 @@ describe("POST /api/users", () => {
   });
 
   it("should register new user", async () => {
-    const response = await supertest(web).post("/api/users").send({
+    const response = await supertest(server).post("/api/users").send({
       username: "test",
       password: "test",
       name: "test",
@@ -38,15 +46,15 @@ describe("POST /api/users", () => {
 
 describe("POST /api/users/login", () => {
   beforeEach(async () => {
-    await UserTest.create();
+    await userTest.create();
   });
 
   afterEach(async () => {
-    await UserTest.delete();
+    await userTest.delete();
   });
 
   it("should be able to login", async () => {
-    const response = await supertest(web).post("/api/users/login").send({
+    const response = await supertest(server).post("/api/users/login").send({
       username: "test",
       password: "test",
     });
@@ -60,7 +68,7 @@ describe("POST /api/users/login", () => {
   });
 
   it("should reject login attempt with incorrect username", async () => {
-    const response = await supertest(web).post("/api/users/login").send({
+    const response = await supertest(server).post("/api/users/login").send({
       username: "incorrect",
       password: "test",
     });
@@ -72,7 +80,7 @@ describe("POST /api/users/login", () => {
   });
 
   it("should reject login attempt with incorrect password", async () => {
-    const response = await supertest(web).post("/api/users/login").send({
+    const response = await supertest(server).post("/api/users/login").send({
       username: "test",
       password: "incorrect",
     });

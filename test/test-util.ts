@@ -1,23 +1,45 @@
-import bcrypt from "bcrypt";
-import { prismaClient } from "../src/application/db";
-import { generateToken } from "../src/lib/jwt";
+import { TokenManager, PasswordUtils } from "../src/lib/utils";
+import type { DB } from "../src/lib/types/app-type";
+
+type Utils = {
+  tokenManager: TokenManager;
+  password: PasswordUtils;
+};
 
 export class UserTest {
-  static async delete() {
-    await prismaClient.user.deleteMany({
+  readonly db: DB;
+  readonly utils: Utils;
+  readonly mockUser = {
+    username: "test_username",
+    name: "test_name",
+    password: "test_password",
+  };
+
+  constructor(db: DB) {
+    this.db = db;
+    this.utils = {
+      password: new PasswordUtils(),
+      tokenManager: new TokenManager(),
+    };
+  }
+
+  async delete() {
+    await this.db.user.deleteMany({
       where: {
-        username: "test",
+        username: this.mockUser.username,
       },
     });
   }
 
-  static async create() {
-    await prismaClient.user.create({
+  async create() {
+    const { username, name, password } = this.mockUser;
+
+    await this.db.user.create({
       data: {
-        username: "test",
-        name: "test",
-        password: await bcrypt.hash("test", 10),
-        token: generateToken("test"),
+        username,
+        name,
+        password: await this.utils.password.hash(password),
+        token: this.utils.tokenManager.sign(username),
       },
     });
   }

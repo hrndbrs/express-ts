@@ -1,24 +1,23 @@
-import { Response, Request, NextFunction } from "express";
 import { ClientError } from "../lib/exceptions";
-import { ZodError } from "zod";
+import { HttpStatusCode } from "../lib/types/http-type";
 
-export const errorHandler = async (
-  error: Error,
-  _req: Request,
-  res: Response,
-  _next: NextFunction,
+import type { ErrorMiddleware } from "../lib/types/app-type";
+
+export const errorHandler: ErrorMiddleware = async (
+  error,
+  _req,
+  res,
+  _next,
 ) => {
-  if (error instanceof ZodError) {
-    res.status(400).json({
-      errors: error.errors.map((e) => e.message),
-    });
-  } else if (error instanceof ClientError) {
-    res.status(error.statusCode).json({
-      error: error.message,
-    });
-  } else {
-    res.status(500).json({
-      error: error.message,
-    });
+  let statusCode = HttpStatusCode.InternalServerError;
+  const message = error.message.split(";");
+
+  if (error instanceof ClientError) {
+    statusCode = error.statusCode;
   }
+
+  const payload =
+    message.length > 1 ? { errors: message } : { error: message[0] };
+
+  res.status(HttpStatusCode.InternalServerError).json(payload);
 };

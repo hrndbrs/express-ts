@@ -1,72 +1,97 @@
-import { prismaClient } from "../application/db";
 import { ClientError } from "../lib/exceptions";
-import { generateToken } from "../lib/jwt";
-import {
-  CreateUserRequest,
-  LoginUserRequest,
-  UserResponse,
-  toUserResponse,
-} from "../models/user-model";
-import { UserValidation } from "../validations/user-validation";
-import { Validation } from "../validations/validation";
-import bcrypt from "bcrypt";
+import { HttpStatusCode } from "../lib/types/http-type";
 
-export class UserService {
-  static async register(request: CreateUserRequest): Promise<UserResponse> {
-    const registerRequest = Validation.validate(UserValidation.REGISTER, request);
+import { AppService, type DB } from "../lib/types/app-type";
+import type {
+  LoginResponse,
+  RegisterResponse,
+} from "../lib/types/DTO/userdto-type";
+import type { LoginSchema, RegisterSchema } from "../lib/types/validators";
+import type { PasswordUtils, TokenManager } from "../lib/utils";
 
-    const existingUser = await prismaClient.user.count({
+type Utils = {
+  password: PasswordUtils;
+  tokenManager: TokenManager;
+};
+
+type Config = {
+  db: DB;
+  utils: Utils;
+};
+
+export default class UserService extends AppService {
+  private readonly _utils: Utils;
+
+  constructor({ db, utils }: Config) {
+    super(db);
+
+    this._utils = utils;
+  }
+
+  async register(payload: RegisterSchema): Promise<RegisterResponse> {
+    const existingUser = await this.db.user.count({
       where: {
-        username: registerRequest.username,
+        username: payload.username,
       },
     });
 
-    if (!!existingUser) {
+    if (existingUser) {
       throw new ClientError("username already exists", 400);
     }
 
-    registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
+    payload.password = await this._utils.password.hash(payload.password);
 
-    const user = await prismaClient.user.create({
-      data: registerRequest,
+    const { username, name } = await this.db.user.create({
+      data: payload,
     });
 
-    return toUserResponse(user);
+    return {
+      username,
+      name,
+    };
   }
 
-  static async login(request: LoginUserRequest): Promise<UserResponse> {
-    const loginRequest = Validation.validate(UserValidation.LOGIN, request);
-
-    let user = await prismaClient.user.findUnique({
+  async login(payload: LoginSchema): Promise<LoginResponse> {
+    const user = await this.db.user.findUnique({
       where: {
-        username: loginRequest.username,
+        username: payload.username,
       },
     });
 
     if (!user) {
-      throw new ClientError("Username/Password is incorrect", 400);
+      throw new ClientError(
+        "Username/Password is incorrect",
+        HttpStatusCode.BadRequest,
+      );
     }
 
-    const isPasswordValid = await bcrypt.compare(loginRequest.password, user.password);
+    const isPasswordValid = await this._utils.password.compare(
+      payload.password,
+      user.password,
+    );
 
     if (!isPasswordValid) {
-      throw new ClientError("Username/Password is incorrect", 400);
+      throw new ClientError(
+        "Username/Password is incorrect",
+        HttpStatusCode.BadRequest,
+      );
     }
 
-    const token = generateToken(user.username);
+    const token = this._utils.tokenManager.sign(user.username);
 
-    user = await prismaClient.user.update({
+    const { username, name } = await this.db.user.update({
       where: {
-        username: loginRequest.username,
+        username: payload.username,
       },
       data: {
         token,
       },
     });
 
-    const response = toUserResponse(user);
-    response.token = user.token!;
-
-    return response;
+    return {
+      username,
+      name,
+      token,
+    };
   }
 }
