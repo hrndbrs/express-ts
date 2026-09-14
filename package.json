@@ -2,47 +2,61 @@
 	"name": "rest-api-ts",
 	"version": "1.0.0",
 	"description": "",
-	"main": "index.js",
+	"main": "dist/bin/www.js",
+	"engines": {
+		"node": "^22.18.0 || >=24.11.0"
+	},
 	"scripts": {
 		"start": "npm run build && node ./dist/bin/www",
 		"start:nodemon": "nodemon ./dist/bin/www",
-		"dev": "npm-run-all --parallel build:watch start:nodemon",
-		"build": "tsc",
+		"dev": "npm run db:generate && npm-run-all --parallel build:watch start:nodemon",
+		"build": "npm run db:generate && tsc",
 		"build:watch": "tsc --watch",
+		"db:generate": "prisma generate",
+		"db:migrate": "prisma migrate dev",
+		"db:deploy": "prisma migrate deploy",
+		"pretest": "npm run db:generate",
 		"test": "jest"
 	},
 	"jest": {
+		"testEnvironment": "node",
+		"setupFiles": [
+			"dotenv/config"
+		],
 		"transform": {
-			"^.+\\.[t|j]sx?$": "babel-jest"
+			"^.+\\.[tj]sx?$": "babel-jest"
 		}
 	},
 	"keywords": [],
 	"author": "hrndbrs",
 	"license": "ISC",
 	"dependencies": {
-		"@prisma/client": "^6.13.0",
-		"@types/bcrypt": "^5.0.2",
-		"bcrypt": "^5.1.1",
-		"express": "^5.1.0",
-		"jsonwebtoken": "^9.0.2",
-		"winston": "^3.11.0",
-		"zod": "^4.0.14"
+		"@prisma/adapter-mariadb": "^7.10.0",
+		"@prisma/client": "^7.10.0",
+		"bcrypt": "^6.0.0",
+		"dotenv": "^17.4.2",
+		"express": "^5.2.1",
+		"jsonwebtoken": "^9.0.3",
+		"winston": "^3.19.0",
+		"zod": "^4.6.5"
 	},
 	"devDependencies": {
-		"@babel/preset-env": "^7.23.9",
-		"@babel/preset-typescript": "^7.23.3",
-		"@jest/globals": "^29.7.0",
-		"@types/express": "^5.0.3",
-		"@types/jest": "^29.5.12",
-		"@types/jsonwebtoken": "^9.0.6",
-		"@types/node": "^24.2.0",
-		"@types/supertest": "^6.0.2",
-		"babel-jest": "^29.7.0",
-		"jest": "^29.7.0",
-		"nodemon": "^3.1.10",
-		"npm-run-all": "^4.1.5",
-		"prisma": "^6.13.0",
-		"supertest": "^6.3.4",
-		"typescript": "^5.9.2"
+		"@babel/core": "^8.0.5",
+		"@babel/preset-env": "^8.0.5",
+		"@babel/preset-typescript": "^8.0.1",
+		"@jest/globals": "^30.5.1",
+		"@types/bcrypt": "^6.0.0",
+		"@types/express": "^5.0.6",
+		"@types/jest": "^30.0.0",
+		"@types/jsonwebtoken": "^9.0.10",
+		"@types/node": "^24.13.4",
+		"@types/supertest": "^7.2.1",
+		"babel-jest": "^30.5.1",
+		"jest": "^30.5.1",
+		"nodemon": "^3.1.14",
+		"npm-run-all2": "^8.0.4",
+		"prisma": "^7.10.0",
+		"supertest": "^7.2.2",
+		"typescript": "^7.0.2"
 	}
 }
