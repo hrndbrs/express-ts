@@ -1,9 +1,9 @@
 import express from "express";
 import Server from "./application/server";
 
-import { MainRouter, UserRouter } from "./routers";
-import { UserController } from "./controllers";
-import { UserService } from "./services";
+import { HealthRouter, MainRouter, UserRouter } from "./routers";
+import { HealthController, UserController } from "./controllers";
+import { HealthService, UserService } from "./services";
 
 import { AuthValidator } from "./validators";
 import { PasswordUtils, TokenManager } from "./lib/utils";
@@ -31,6 +31,8 @@ export default function createServer() {
     },
   });
 
+  const healthService = new HealthService({ db });
+
   // Controllers
   const userController = new UserController({
     services: {
@@ -41,11 +43,20 @@ export default function createServer() {
     },
   });
 
+  const healthController = new HealthController({
+    services: {
+      health: healthService,
+    },
+  });
+
   // Routers
   const userRouter = new UserRouter({
     user: userController,
   });
-  const publicRouter = new MainRouter(userRouter);
+  const healthRouter = new HealthRouter({
+    health: healthController,
+  });
+  const publicRouter = new MainRouter(healthRouter, userRouter);
 
   const server = new Server({
     logger,
