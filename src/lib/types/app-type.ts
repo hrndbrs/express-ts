@@ -1,7 +1,7 @@
 import type { Router } from "express";
 import type { RequestHandler, ErrorRequestHandler } from "express";
 import type { Logger as LOGGER } from "winston";
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../../generated/prisma/client";
 
 export abstract class AppService {
   protected _db: DB;
