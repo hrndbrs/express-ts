@@ -8,21 +8,18 @@
 	},
 	"scripts": {
 		"start": "npm run build && node ./dist/bin/www",
-		"start:nodemon": "nodemon ./dist/bin/www",
+		"start:nodemon": "dotenv -- nodemon ./dist/bin/www",
 		"dev": "npm run db:generate && npm-run-all --parallel build:watch start:nodemon",
 		"build": "npm run db:generate && tsc",
 		"build:watch": "tsc --watch",
 		"db:generate": "prisma generate",
-		"db:migrate": "prisma migrate dev",
+		"db:migrate": "dotenv -- prisma migrate dev",
 		"db:deploy": "prisma migrate deploy",
 		"pretest": "npm run db:generate",
-		"test": "jest"
+		"test": "dotenv -- jest"
 	},
 	"jest": {
 		"testEnvironment": "node",
-		"setupFiles": [
-			"dotenv/config"
-		],
 		"transform": {
 			"^.+\\.[tj]sx?$": "babel-jest"
 		}
@@ -34,7 +31,6 @@
 		"@prisma/adapter-mariadb": "^7.10.0",
 		"@prisma/client": "^7.10.0",
 		"bcrypt": "^6.0.0",
-		"dotenv": "^17.4.2",
 		"express": "^5.2.1",
 		"jsonwebtoken": "^9.0.3",
 		"winston": "^3.19.0",
@@ -52,6 +48,7 @@
 		"@types/node": "^24.13.4",
 		"@types/supertest": "^7.2.1",
 		"babel-jest": "^30.5.1",
+		"dotenv-cli": "^11.0.0",
 		"jest": "^30.5.1",
 		"nodemon": "^3.1.14",
 		"npm-run-all2": "^8.0.4",
