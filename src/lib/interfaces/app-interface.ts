@@ -1,14 +1,11 @@
-import type { Router } from "express";
-import type { RequestHandler, ErrorRequestHandler } from "express";
-import type { Logger as LOGGER } from "winston";
 import type { PrismaClient } from "../../generated/prisma/client";
 
-export abstract class AppService {
-  protected _db: DB;
+import type { ErrorRequestHandler, RequestHandler, Router } from "express";
+import express from "express";
+import type { Logger as LOGGER } from "winston";
 
-  constructor(db: DB) {
-    this._db = db;
-  }
+export abstract class AppService {
+  constructor(protected _db: DB) {}
 
   get db() {
     return this._db;
@@ -21,10 +18,24 @@ export abstract class AppController {
 
 export abstract class AppRouter {
   protected abstract _path: string;
-  protected abstract _router: Router;
   protected abstract _controllers: Record<string, AppController>;
+  protected _router: Router;
 
-  protected _subRouters: AppRouter[] = [];
+  constructor() {
+    this._router = express.Router();
+  }
+
+  public addSubRouters(...subRouters: AppRouter[]) {
+    for (const r of subRouters) {
+      this.router.use(r.path, r.router);
+    }
+  }
+
+  public addMiddlewares(...middlewares: Middleware[]) {
+    for (const m of middlewares) {
+      this.router.use(m);
+    }
+  }
 
   get router() {
     return this._router;
@@ -33,8 +44,6 @@ export abstract class AppRouter {
   get path() {
     return this._path;
   }
-
-  protected abstract init(): void;
 }
 
 export type DB = PrismaClient;
@@ -47,7 +56,4 @@ export type Logger = LOGGER;
 
 export type ServerConfig = {
   logger: Logger;
-  middlewares: Middleware[];
-  routers: AppRouter[];
-  errorHandler: ErrorMiddleware;
 };

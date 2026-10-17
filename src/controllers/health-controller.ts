@@ -1,5 +1,8 @@
-import { AppController, type HandlerFunction } from "../lib/types/app-type";
-import { HttpStatusCode } from "../lib/types/http-type";
+import {
+  AppController,
+  HttpStatusCode,
+  type HandlerFunction,
+} from "../lib/interfaces";
 import type { HealthService } from "../services";
 
 type Services = {

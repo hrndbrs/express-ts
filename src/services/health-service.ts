@@ -1,15 +1,7 @@
-import { AppService, type DB } from "../lib/types/app-type";
-import type { HealthResponse } from "../lib/types/DTO/healthdto-type";
-
-type Config = {
-  db: DB;
-};
+import { AppService } from "../lib/interfaces";
+import type { HealthResponse } from "../lib/interfaces/DTO";
 
 export default class HealthService extends AppService {
-  constructor({ db }: Config) {
-    super(db);
-  }
-
   async check(): Promise<HealthResponse> {
     let database: HealthResponse["database"] = "up";
 

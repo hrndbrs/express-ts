@@ -1,17 +1,14 @@
 import express from "express";
 import Server from "./application/server";
-
-import { HealthRouter, MainRouter, UserRouter } from "./routers";
-import { HealthController, UserController } from "./controllers";
-import { HealthService, UserService } from "./services";
-
-import { AuthValidator } from "./validators";
-import { PasswordUtils, TokenManager } from "./lib/utils";
-
-import { errorHandler } from "./middlewares/error-handler";
-
 import getDB from "./config/db";
 import createLogger from "./config/logging";
+import { HealthController, UserController } from "./controllers";
+import { PasswordUtils, TokenManager } from "./lib/utils";
+
+import { AuthValidator } from "./lib/validators";
+import { globalErrorHandler } from "./middlewares";
+import { HealthRouter, MainRouter, UserRouter } from "./routers";
+import { HealthService, UserService } from "./services";
 
 export default function createServer() {
   const logger = createLogger();
@@ -23,15 +20,14 @@ export default function createServer() {
   const tokenManager = new TokenManager();
 
   // Services
-  const userService = new UserService({
-    db,
+  const userService = new UserService(db, {
     utils: {
       password: passwordUtils,
       tokenManager,
     },
   });
 
-  const healthService = new HealthService({ db });
+  const healthService = new HealthService(db);
 
   // Controllers
   const userController = new UserController({
@@ -50,20 +46,23 @@ export default function createServer() {
   });
 
   // Routers
+  const mainRouter = new MainRouter();
   const userRouter = new UserRouter({
     user: userController,
   });
   const healthRouter = new HealthRouter({
     health: healthController,
   });
-  const publicRouter = new MainRouter(healthRouter, userRouter);
+
+  mainRouter.addSubRouters(healthRouter, userRouter);
 
   const server = new Server({
     logger,
-    errorHandler,
-    routers: [publicRouter],
-    middlewares: [express.json()],
   });
+
+  server.addMiddlewares(express.json());
+  server.registerRoutes(mainRouter);
+  server.addMiddlewares(globalErrorHandler);
 
   return server;
 }

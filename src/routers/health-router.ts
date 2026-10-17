@@ -1,5 +1,4 @@
-import express from "express";
-import { AppRouter } from "../lib/types/app-type";
+import { AppRouter } from "../lib/interfaces";
 
 import type { HealthController } from "../controllers";
 
@@ -9,16 +8,13 @@ type Controllers = {
 
 export default class HealthRouter extends AppRouter {
   protected _path = "/health";
-  declare protected _router;
 
   constructor(protected _controllers: Controllers) {
     super();
-
-    this._router = express.Router();
-    this.init();
+    this._init();
   }
 
-  protected init() {
+  private _init() {
     this.router.get("/", this._controllers.health.check);
   }
 }

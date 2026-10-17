@@ -1,4 +1,4 @@
-import type { HttpStatusCode } from "./types/http-type";
+import type { HttpStatusCode } from "./http-interface";
 
 export class ClientError extends Error {
   constructor(

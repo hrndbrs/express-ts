@@ -1,52 +1,75 @@
 import express from "express";
-
-import type { AppRouter } from "../lib/types/app-type";
+import { v4 as uuidv4 } from "uuid";
 
 import type {
-  ServerConfig,
+  AppRouter,
+  HandlerFunction,
   Logger,
   Middleware,
-  ErrorMiddleware,
-} from "../lib/types/app-type";
+  ServerConfig,
+} from "../lib/interfaces";
 
 export const web = express();
 
 export default class Server {
   private _app: express.Express;
   private _logger: Logger;
-  private _middlewares: Middleware[];
-  private _routers: AppRouter[];
-  private _errorHandler: ErrorMiddleware;
 
   get app() {
     return this._app;
   }
 
-  constructor({ logger, middlewares, routers, errorHandler }: ServerConfig) {
+  constructor({ logger }: ServerConfig) {
     this._app = express();
     this._logger = logger;
-    this._middlewares = middlewares;
-    this._routers = routers;
-    this._errorHandler = errorHandler;
+
+    this._init();
   }
 
-  private _setMiddleware(...middlewares: Middleware[]) {
+  private _init() {
+    this.app.use(this._setRequestLogger);
+  }
+
+  public addMiddlewares(...middlewares: Middleware[]) {
     for (const m of middlewares) {
       this.app.use(m);
     }
   }
 
-  private _registerRoutes(...routers: AppRouter[]) {
+  public registerRoutes(...routers: AppRouter[]) {
     for (const r of routers) {
       this.app.use(r.path, r.router);
     }
   }
 
-  run(port: number = 3000) {
-    this._setMiddleware(...this._middlewares);
-    this._registerRoutes(...this._routers);
-    this._setMiddleware(this._errorHandler);
+  private _setRequestLogger: HandlerFunction = (req, res, next) => {
+    const requestId = uuidv4();
+    const childLogger = this._logger.child({
+      requestId,
+      method: req.method,
+      path: req.url,
+    });
 
+    const profiler = childLogger.startTimer();
+
+    req.logger = childLogger;
+    req.requestId = requestId;
+
+    childLogger.info({
+      ip: req.ip,
+      userAgent: req.headers.userAgent,
+    });
+
+    res.on("finish", () => {
+      profiler.done({
+        statusCode: res.statusCode,
+      });
+    });
+
+    next();
+  };
+
+  run(port: number = 3000) {
     this.app.listen(port, () => {
       this._logger.info(`Running on port: ${port}`);
     });

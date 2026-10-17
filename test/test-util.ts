@@ -1,5 +1,5 @@
 import { TokenManager, PasswordUtils } from "../src/lib/utils";
-import type { DB } from "../src/lib/types/app-type";
+import type { DB } from "../src/lib/interfaces";
 
 type Utils = {
   tokenManager: TokenManager;

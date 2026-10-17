@@ -1,5 +1,4 @@
-import express from "express";
-import { AppRouter } from "../lib/types/app-type";
+import { AppRouter } from "../lib/interfaces";
 
 import type { UserController } from "../controllers";
 
@@ -8,18 +7,16 @@ type Controllers = {
 };
 
 export default class UserRouter extends AppRouter {
-  protected _path = "/user";
+  protected _path = "/users";
   declare protected _router;
 
   constructor(protected _controllers: Controllers) {
     super();
-
-    this._router = express.Router();
-    this.init();
+    this._init();
   }
 
-  protected init() {
-    this.router.post("/register", this._controllers.user.register);
+  private _init() {
+    this.router.post("/", this._controllers.user.register);
     this.router.post("/login", this._controllers.user.login);
   }
 }

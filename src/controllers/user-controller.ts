@@ -1,7 +1,10 @@
-import { AppController, type HandlerFunction } from "../lib/types/app-type";
-import { HttpStatusCode } from "../lib/types/http-type";
+import {
+  AppController,
+  HttpStatusCode,
+  type HandlerFunction,
+} from "../lib/interfaces";
 import type { UserService } from "../services";
-import type { AuthValidator } from "../validators";
+import type { AuthValidator } from "../lib/validators";
 
 type Services = {
   user: UserService;

@@ -1,12 +1,11 @@
-import { ClientError } from "../lib/exceptions";
-import { HttpStatusCode } from "../lib/types/http-type";
-
-import { AppService, type DB } from "../lib/types/app-type";
-import type {
-  LoginResponse,
-  RegisterResponse,
-} from "../lib/types/DTO/userdto-type";
-import type { LoginSchema, RegisterSchema } from "../lib/types/validators";
+import {
+  AppService,
+  ClientError,
+  HttpStatusCode,
+  type DB,
+} from "../lib/interfaces";
+import type { LoginResponse, RegisterResponse } from "../lib/interfaces/DTO";
+import type { LoginSchema, RegisterSchema } from "../lib/interfaces/validators";
 import type { PasswordUtils, TokenManager } from "../lib/utils";
 
 type Utils = {
@@ -15,14 +14,13 @@ type Utils = {
 };
 
 type Config = {
-  db: DB;
   utils: Utils;
 };
 
 export default class UserService extends AppService {
   private readonly _utils: Utils;
 
-  constructor({ db, utils }: Config) {
+  constructor(db: DB, { utils }: Config) {
     super(db);
 
     this._utils = utils;

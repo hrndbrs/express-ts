@@ -1,8 +1,8 @@
 import {
-  registerSchema,
-  loginSchema,
   BaseValidator,
-} from "../lib/types/validators";
+  loginSchema,
+  registerSchema,
+} from "../interfaces/validators";
 
 const schemas = {
   login: loginSchema,

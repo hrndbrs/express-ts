@@ -1,7 +1,6 @@
-import { ClientError } from "../../exceptions";
-import { HttpStatusCode } from "../http-type";
-
-import type { infer as zInfer, ZodType } from "zod";
+import type { ZodType, infer as zInfer } from "zod";
+import { ClientError } from "../exceptions-interface";
+import { HttpStatusCode } from "../http-interface";
 
 type SchemaMap = Record<string, ZodType>;
 
@@ -18,5 +17,3 @@ export abstract class BaseValidator<S extends SchemaMap> {
     throw new ClientError(message, HttpStatusCode.BadRequest);
   }
 }
-
-export * from "./auth-validator-type";

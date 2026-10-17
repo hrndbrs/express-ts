@@ -1,7 +1,7 @@
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "../generated/prisma/client";
 
-import type { DB, Logger } from "../lib/types/app-type";
+import type { DB, Logger } from "../lib/interfaces";
 
 export default function getDB(logger: Logger): DB {
   const databaseUrl = process.env.DATABASE_URL;
