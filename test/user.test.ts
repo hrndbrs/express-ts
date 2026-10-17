@@ -5,11 +5,16 @@ import createServer from "../src/main";
 import createLogger from "../src/config/logging";
 import getDB from "../src/config/db";
 
-const server = createServer().app;
 const logger = createLogger();
 const db = getDB(logger);
+const server = createServer({ logger, db }).app;
 
 const userTest = new UserTest(db);
+const { mockUser } = userTest;
+
+afterAll(async () => {
+  await db.$disconnect();
+});
 
 describe("POST /api/users", () => {
   afterEach(async () => {
@@ -30,17 +35,13 @@ describe("POST /api/users", () => {
   });
 
   it("should register new user", async () => {
-    const response = await supertest(server).post("/api/users").send({
-      username: "test",
-      password: "test",
-      name: "test",
-    });
+    const response = await supertest(server).post("/api/users").send(mockUser);
 
     logger.debug(response.body);
 
     expect(response.status).toBe(201);
-    expect(response.body.data.username).toBe("test");
-    expect(response.body.data.name).toBe("test");
+    expect(response.body.data.username).toBe(mockUser.username);
+    expect(response.body.data.name).toBe(mockUser.name);
   });
 });
 
@@ -55,22 +56,22 @@ describe("POST /api/users/login", () => {
 
   it("should be able to login", async () => {
     const response = await supertest(server).post("/api/users/login").send({
-      username: "test",
-      password: "test",
+      username: mockUser.username,
+      password: mockUser.password,
     });
 
     logger.debug(response.body);
 
     expect(response.status).toBe(200);
-    expect(response.body.data.username).toBe("test");
-    expect(response.body.data.name).toBe("test");
+    expect(response.body.data.username).toBe(mockUser.username);
+    expect(response.body.data.name).toBe(mockUser.name);
     expect(response.body.data.token).toBeDefined();
   });
 
   it("should reject login attempt with incorrect username", async () => {
     const response = await supertest(server).post("/api/users/login").send({
       username: "incorrect",
-      password: "test",
+      password: mockUser.password,
     });
 
     logger.debug(response.body);
@@ -81,7 +82,7 @@ describe("POST /api/users/login", () => {
 
   it("should reject login attempt with incorrect password", async () => {
     const response = await supertest(server).post("/api/users/login").send({
-      username: "test",
+      username: mockUser.username,
       password: "incorrect",
     });
 

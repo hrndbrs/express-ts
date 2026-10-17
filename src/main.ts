@@ -6,14 +6,20 @@ import { HealthController, UserController } from "./controllers";
 import { PasswordUtils, TokenManager } from "./lib/utils";
 
 import { AuthValidator } from "./lib/validators";
+import type { DB, Logger } from "./lib/interfaces";
 import { globalErrorHandler } from "./middlewares";
 import { HealthRouter, MainRouter, UserRouter } from "./routers";
 import { HealthService, UserService } from "./services";
 
-export default function createServer() {
-  const logger = createLogger();
-  const db = getDB(logger);
+type Dependencies = {
+  logger?: Logger;
+  db?: DB;
+};
 
+export default function createServer({
+  logger = createLogger(),
+  db = getDB(logger),
+}: Dependencies = {}) {
   // Libs
   const authValidator = new AuthValidator();
   const passwordUtils = new PasswordUtils();
